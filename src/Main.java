@@ -288,46 +288,22 @@ public class Main {
     }
 
     static int chooseBotCard(ArrayList<String> hand) {
+        // Prefer draw two, then skip, then number, then wild
         for (int i = 0; i < hand.size(); i++) {
-            String card = hand.get(i);
-            boolean ok = false;
-            if (card.startsWith("W")) ok = true;
-            else if (color(card).equals(color(upCard))) ok = true;
-            else if (!calledColor.equals("") && color(card).equals(calledColor)) ok = true;
-            else if (rank(card).equals(rank(upCard)) && !rank(card).equals("NUMBER")) ok = true;
-            else if (rank(card).equals("NUMBER") && rank(upCard).equals("NUMBER") && number(card) == number(upCard)) ok = true;
-            if (rank(card).equals("DRAW_TWO") && ok) {
+            if (Card.rank(hand.get(i)).equals("DRAW_TWO") && Rules.isLegal(hand.get(i), upCard, calledColor))
                 return i;
-            }
         }
         for (int i = 0; i < hand.size(); i++) {
-            String card = hand.get(i);
-            boolean ok = false;
-            if (card.startsWith("W")) ok = true;
-            else if (color(card).equals(color(upCard))) ok = true;
-            else if (!calledColor.equals("") && color(card).equals(calledColor)) ok = true;
-            else if (rank(card).equals(rank(upCard)) && !rank(card).equals("NUMBER")) ok = true;
-            else if (rank(card).equals("NUMBER") && rank(upCard).equals("NUMBER") && number(card) == number(upCard)) ok = true;
-            if (rank(card).equals("SKIP") && ok) {
+            if (Card.rank(hand.get(i)).equals("SKIP") && Rules.isLegal(hand.get(i), upCard, calledColor))
                 return i;
-            }
         }
         for (int i = 0; i < hand.size(); i++) {
-            String card = hand.get(i);
-            boolean ok = false;
-            if (card.startsWith("W")) ok = true;
-            else if (color(card).equals(color(upCard))) ok = true;
-            else if (!calledColor.equals("") && color(card).equals(calledColor)) ok = true;
-            else if (rank(card).equals(rank(upCard)) && !rank(card).equals("NUMBER")) ok = true;
-            else if (rank(card).equals("NUMBER") && rank(upCard).equals("NUMBER") && number(card) == number(upCard)) ok = true;
-            if (rank(card).equals("NUMBER") && ok) {
+            if (Card.rank(hand.get(i)).equals("NUMBER") && Rules.isLegal(hand.get(i), upCard, calledColor))
                 return i;
-            }
         }
         for (int i = 0; i < hand.size(); i++) {
-            if (hand.get(i).startsWith("W")) {
+            if (Card.isWild(hand.get(i)))
                 return i;
-            }
         }
         return -1;
     }
@@ -407,22 +383,7 @@ public class Main {
     }
 
     static boolean isLegal(String card, String up, String call) {
-        if (card.startsWith("W")) {
-            return true;
-        }
-        if (color(card).equals(color(up))) {
-            return true;
-        }
-        if (!call.equals("") && color(card).equals(call)) {
-            return true;
-        }
-        if (rank(card).equals(rank(up)) && !rank(card).equals("NUMBER")) {
-            return true;
-        }
-        if (rank(card).equals("NUMBER") && rank(up).equals("NUMBER") && number(card) == number(up)) {
-            return true;
-        }
-        return false;
+        return Rules.isLegal(card, up, call);
     }
 
     static String color(String card)  { return Card.color(card); }

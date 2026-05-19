@@ -26,6 +26,7 @@ public class UnoTest {
         testBotChoosesWildLast();
         testBotColorChoosesmost();
         testEdgeCaseWildOnWild();
+        testRulesDirectly();
 
         System.out.println("\n=== UnoTest Results ===");
         System.out.println("Passed: " + passed);
@@ -218,5 +219,12 @@ public class UnoTest {
             System.out.println("  FAIL: " + label + " (expected=" + expected + " actual=" + actual + ")");
             failed++;
         }
+    }
+
+    static void testRulesDirectly() {
+        // These call Rules directly - no CLI, no game state needed
+        assertTrue("Rules: W4 legal on anything", Rules.isLegal("W4", "R5", ""));
+        assertTrue("Rules: color match", Rules.isLegal("R9", "R5", ""));
+        assertFalse("Rules: no match", Rules.isLegal("G3", "R5", ""));
     }
 }

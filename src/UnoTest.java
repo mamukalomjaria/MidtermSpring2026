@@ -27,6 +27,8 @@ public class UnoTest {
         testBotColorChoosesmost();
         testEdgeCaseWildOnWild();
         testRulesDirectly();
+        testDrawFromDeck();
+        testDrawShufflesDiscardWhenDeckEmpty();
 
         System.out.println("\n=== UnoTest Results ===");
         System.out.println("Passed: " + passed);
@@ -226,5 +228,26 @@ public class UnoTest {
         assertTrue("Rules: W4 legal on anything", Rules.isLegal("W4", "R5", ""));
         assertTrue("Rules: color match", Rules.isLegal("R9", "R5", ""));
         assertFalse("Rules: no match", Rules.isLegal("G3", "R5", ""));
+    }
+
+    static void testDrawFromDeck() {
+        // Set up a minimal deck with one known card
+        Main.deck.clear();
+        Main.discard.clear();
+        Main.deck.add("R5");
+        String drawn = Main.draw();
+        assertEquals("Drawing from deck returns top card", "R5", drawn);
+    }
+
+    static void testDrawShufflesDiscardWhenDeckEmpty() {
+        Main.deck.clear();
+        Main.discard.clear();
+        Main.discard.add("G3");
+        Main.discard.add("B7");
+        Main.random = new java.util.Random(0); // fixed seed for determinism
+        String drawn = Main.draw();
+        // After drawing, deck was replenished from discard
+        assertTrue("Can draw when deck was empty but discard had cards",
+                drawn.equals("G3") || drawn.equals("B7"));
     }
 }

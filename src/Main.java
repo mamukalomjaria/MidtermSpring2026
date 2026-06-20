@@ -1,7 +1,11 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
+import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 public class Main {
@@ -27,6 +31,8 @@ public class Main {
         int games = 1;
         boolean human = false;
         long seed = System.currentTimeMillis();
+        String reportMode = "";
+        int reportLimit = 10;
 
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("--bots") && i + 1 < args.length) {
@@ -39,13 +45,31 @@ public class Main {
                 quiet = true;
             } else if (args[i].equals("--seed") && i + 1 < args.length) {
                 seed = Long.parseLong(args[++i]);
+            } else if (args[i].equals("--history")) {
+                reportMode = "history";
+                if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+                    reportLimit = Integer.parseInt(args[++i]);
+                }
+            } else if (args[i].equals("--win-counts")) {
+                reportMode = "win-counts";
+            } else if (args[i].equals("--high-scores")) {
+                reportMode = "high-scores";
+                if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+                    reportLimit = Integer.parseInt(args[++i]);
+                }
             } else if (args[i].equals("--self-test")) {
                 selfTest();
                 return;
             } else if (args[i].equals("--help")) {
                 System.out.println("Usage: scripts/run.sh [--bots N] [--games N] [--human] [--quiet] [--seed N]");
+                System.out.println("Reports: --history [N] | --win-counts | --high-scores [N]");
                 return;
             }
+        }
+
+        if (!reportMode.isEmpty()) {
+            showReport(reportMode, reportLimit);
+            return;
         }
 
         display = new Display(quiet);
@@ -60,13 +84,16 @@ public class Main {
             return;
         }
 
+        LocalDateTime startedAt = LocalDateTime.now();
+        List<RoundResult> roundResults = new ArrayList<RoundResult>();
         for (int g = 1; g <= games; g++) {
             display.showGameHeader(g);
-            playGame();
+            roundResults.add(playGame(g));
             logger.info("Round end: game=" + g);
         }
 
         display.showFinalScores(playerNames, scores);
+        saveGameHistory(startedAt, LocalDateTime.now(), roundResults);
         logger.info("Game end: games=" + games);
     }
 
@@ -86,7 +113,7 @@ public class Main {
         }
     }
 
-    static void playGame() {
+    static RoundResult playGame(int roundNumber) {
         deck.clear();
         String[] colors = {"R", "Y", "G", "B"};
         for (int c = 0; c < colors.length; c++) {
@@ -211,7 +238,7 @@ public class Main {
                     scores[currentPlayer] += points;
                     logger.info("Round end: winner=" + name + " points=" + points);
                     display.showWin(name, points);
-                    return;
+                    return new RoundResult(roundNumber, name, points);
                 }
 
                 if (rank(card).equals("SKIP")) {
@@ -249,6 +276,7 @@ public class Main {
         }
         logger.warning("Round end: safety limit reached");
         display.showSafetyLimit();
+        return new RoundResult(roundNumber, bestScorePlayer(), 0);
     }
 
     static String draw() {
@@ -380,6 +408,67 @@ public class Main {
         }
         if (currentPlayer < 0) {
             currentPlayer = playerNames.size() - 1;
+        }
+    }
+
+    static void saveGameHistory(LocalDateTime startedAt, LocalDateTime completedAt, List<RoundResult> roundResults) {
+        GameResult result = new GameResult(
+                startedAt,
+                completedAt,
+                playerNames,
+                roundResults,
+                finalScoreMap(),
+                bestScorePlayer()
+        );
+
+        try (GameHistoryRepository repository = new JpaGameHistoryRepository()) {
+            repository.save(result);
+        }
+    }
+
+    static Map<String, Integer> finalScoreMap() {
+        Map<String, Integer> result = new LinkedHashMap<String, Integer>();
+        for (int i = 0; i < playerNames.size(); i++) {
+            result.put(playerNames.get(i), Integer.valueOf(scores[i]));
+        }
+        return result;
+    }
+
+    static String bestScorePlayer() {
+        String bestPlayer = playerNames.isEmpty() ? "" : playerNames.get(0);
+        int bestScore = playerNames.isEmpty() ? 0 : scores[0];
+        for (int i = 1; i < playerNames.size(); i++) {
+            if (scores[i] > bestScore) {
+                bestScore = scores[i];
+                bestPlayer = playerNames.get(i);
+            }
+        }
+        return bestPlayer;
+    }
+
+    static void showReport(String reportMode, int limit) {
+        try (GameHistoryRepository repository = new JpaGameHistoryRepository()) {
+            if (reportMode.equals("history")) {
+                System.out.println("Recent games:");
+                for (GameSummary game : repository.recentGames(limit)) {
+                    System.out.println("Game " + game.getGameId()
+                            + " completed=" + game.getCompletedAt()
+                            + " rounds=" + game.getRoundsPlayed()
+                            + " winner=" + game.getWinnerName());
+                }
+            } else if (reportMode.equals("win-counts")) {
+                System.out.println("Player win counts:");
+                for (PlayerWinCount count : repository.playerWinCounts()) {
+                    System.out.println(count.getPlayerName() + ": " + count.getWinCount());
+                }
+            } else if (reportMode.equals("high-scores")) {
+                System.out.println("Highest scores:");
+                for (HighScore score : repository.highestScores(limit)) {
+                    System.out.println(score.getPlayerName()
+                            + ": " + score.getScore()
+                            + " completed=" + score.getCompletedAt());
+                }
+            }
         }
     }
 

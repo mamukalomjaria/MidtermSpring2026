@@ -74,6 +74,40 @@ For an interactive human game:
 docker run --rm -it midterm-uno-cli:1.0 --human --bots 2 --games 1
 ```
 
+## Assignment 5 Persistence Commands
+
+Game history is persisted with JPA/Hibernate and H2. See `docs/database.md` for schema and setup notes.
+
+Run tests, including persistence tests:
+
+```bash
+mvn test
+```
+
+Run a game and save history:
+
+```bash
+mvn exec:java '-Dexec.args=--bots 3 --games 1 --quiet'
+```
+
+List recent games:
+
+```bash
+mvn exec:java '-Dexec.args=--history 10'
+```
+
+Show player win counts:
+
+```bash
+mvn exec:java '-Dexec.args=--win-counts'
+```
+
+Show highest scores:
+
+```bash
+mvn exec:java '-Dexec.args=--high-scores 10'
+```
+
 ## Legacy Script Commands
 
 The original shell scripts are still available.

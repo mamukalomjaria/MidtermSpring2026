@@ -4,19 +4,93 @@ This is a standalone CLI UNO-like game.
 
 The code is written as plausible feature-grown Java: almost everything lives in one procedural `Main` class. It works, but it has mixed responsibilities, duplicated rule logic, primitive-heavy card handling, global state, and condition-heavy gameplay code. The goal is to refactor it safely, not rewrite it.
 
-## Compile
+## Assignment 4 Build Commands
+
+Run these commands from the project root.
+
+### Local Build
+
+```bash
+mvn compile
+```
+
+### Local Test
+
+```bash
+mvn test
+```
+
+### Local Run
+
+```bash
+mvn exec:java
+```
+
+Example bot game:
+
+```bash
+mvn exec:java '-Dexec.args=--bots 3 --games 5 --quiet'
+```
+
+Interactive game:
+
+```bash
+mvn exec:java '-Dexec.args=--human --bots 2 --games 1'
+```
+
+### Package Creation
+
+```bash
+mvn package
+```
+
+The runnable JAR is created at:
+
+```text
+target/midterm-uno-cli-1.0.0.jar
+```
+
+Run the packaged application:
+
+```bash
+java -jar target/midterm-uno-cli-1.0.0.jar --bots 3 --games 1
+```
+
+### Docker Build
+
+```bash
+docker build -t midterm-uno-cli:1.0 .
+```
+
+### Docker Run
+
+```bash
+docker run --rm midterm-uno-cli:1.0 --bots 3 --games 1 --quiet
+```
+
+For an interactive human game:
+
+```bash
+docker run --rm -it midterm-uno-cli:1.0 --human --bots 2 --games 1
+```
+
+## Legacy Script Commands
+
+The original shell scripts are still available.
+
+### Compile
 
 ```bash
 scripts/compile.sh
 ```
 
-## Run Bot Games
+### Run Bot Games
 
 ```bash
 scripts/run.sh --bots 3 --games 5 --quiet
 ```
 
-## Run Interactive Game
+### Run Interactive Game
 
 ```bash
 scripts/run.sh --human --bots 2 --games 1
@@ -34,7 +108,7 @@ W4   wild draw four
 draw draw a card
 ```
 
-## Characterization Checks
+### Characterization Checks
 
 ```bash
 scripts/test.sh

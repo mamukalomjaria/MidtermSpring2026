@@ -2,8 +2,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.logging.Logger;
 
 public class Main {
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+
     static ArrayList<String> playerNames = new ArrayList<String>();
     static ArrayList<Boolean> humanPlayers = new ArrayList<Boolean>();
     static ArrayList<ArrayList<String>> hands = new ArrayList<ArrayList<String>>();
@@ -46,11 +49,13 @@ public class Main {
         }
 
         display = new Display(quiet);
+        logger.info("Game start: bots=" + bots + " human=" + human + " games=" + games);
 
         random = new Random(seed);
         setupPlayers(bots, human);
 
         if (playerNames.size() < 2 || playerNames.size() > 4) {
+            logger.warning("Invalid player count: " + playerNames.size());
             System.out.println("UNO needs 2 to 4 players.");
             return;
         }
@@ -58,9 +63,11 @@ public class Main {
         for (int g = 1; g <= games; g++) {
             display.showGameHeader(g);
             playGame();
+            logger.info("Round end: game=" + g);
         }
 
         display.showFinalScores(playerNames, scores);
+        logger.info("Game end: games=" + games);
     }
 
     static void setupPlayers(int bots, boolean human) {
@@ -123,6 +130,7 @@ public class Main {
             guard++;
             String name = playerNames.get(currentPlayer);
             ArrayList<String> hand = hands.get(currentPlayer);
+            logger.info("Player turn: player=" + name + " handSize=" + hand.size());
 
             display.showUpCard(upCard, calledColor);
             display.showHand(name, hand);
@@ -137,6 +145,7 @@ public class Main {
             if (chosen == -1) {
                 String drawn = draw();
                 hand.add(drawn);
+                logger.info("Card drawn: player=" + name);
                 display.showDraw(name, drawn);
                 if (isLegal(drawn, upCard, calledColor)) {
                     if (!humanPlayers.get(currentPlayer).booleanValue()) {
@@ -162,8 +171,10 @@ public class Main {
                 String card = hand.get(chosen);
 
                 if (!Rules.isLegal(card, upCard, calledColor)) {
+                    logger.warning("Invalid input: player=" + name + " card=" + card);
                     display.showIllegalCard(name, card);
                     hand.add(draw());
+                    logger.info("Card drawn: player=" + name + " reason=illegal-card-penalty");
                     next();
                     continue;
                 }
@@ -172,6 +183,7 @@ public class Main {
                 discard.add(upCard);
                 upCard = card;
                 calledColor = "";
+                logger.info("Card played: player=" + name + " card=" + card);
                 display.showPlay(name, card);
 
                 if (card.equals("W") || card.equals("W4")) {
@@ -197,6 +209,7 @@ public class Main {
                         }
                     }
                     scores[currentPlayer] += points;
+                    logger.info("Round end: winner=" + name + " points=" + points);
                     display.showWin(name, points);
                     return;
                 }
@@ -216,6 +229,7 @@ public class Main {
                     next();
                     hands.get(currentPlayer).add(draw());
                     hands.get(currentPlayer).add(draw());
+                    logger.info("Card drawn: player=" + playerNames.get(currentPlayer) + " count=2 reason=draw-two");
                     display.showDrawsTwo(playerNames.get(currentPlayer));
                     next();
                 } else if (rank(card).equals("WILD_DRAW_FOUR")) {
@@ -223,6 +237,7 @@ public class Main {
                     for (int i = 0; i < 4; i++) {
                         hands.get(currentPlayer).add(draw());
                     }
+                    logger.info("Card drawn: player=" + playerNames.get(currentPlayer) + " count=4 reason=wild-draw-four");
                     display.showDrawsFour(playerNames.get(currentPlayer));
                     next();
                 } else {
@@ -232,6 +247,7 @@ public class Main {
                 next();
             }
         }
+        logger.warning("Round end: safety limit reached");
         display.showSafetyLimit();
     }
 
@@ -279,6 +295,7 @@ public class Main {
                 if (index >= 0 && index < hand.size()) {
                     return index;
                 }
+                logger.warning("Invalid input: index out of range");
             } catch (Exception ignored) {
             }
             for (int i = 0; i < hand.size(); i++) {
@@ -286,9 +303,11 @@ public class Main {
                     if (isLegal(hand.get(i), upCard, calledColor)) {
                         return i;
                     }
+                    logger.warning("Invalid input: illegal card code");
                     System.out.println("That card is not legal.");
                 }
             }
+            logger.warning("Invalid input: card not found");
             System.out.println("Card not found.");
         }
     }
@@ -309,6 +328,7 @@ public class Main {
             if (input.equals("B")) {
                 return "B";
             }
+            logger.warning("Invalid input: bad color");
             System.out.println("Bad color.");
         }
     }

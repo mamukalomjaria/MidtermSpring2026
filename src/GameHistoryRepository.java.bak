@@ -1,0 +1,8 @@
+// Stub to allow compilation without Jakarta dependencies
+
+public interface GameHistoryRepository extends AutoCloseable {
+    void save(GameResult result);
+    java.util.List<GameSummary> recentGames(int limit);
+    java.util.List<PlayerWinCount> playerWinCounts();
+    java.util.List<HighScore> highestScores(int limit);
+}

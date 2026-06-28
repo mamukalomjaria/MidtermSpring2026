@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.List;
 
 public class Display {
 
@@ -14,7 +14,7 @@ public class Display {
         System.out.println("\nUp card: " + upCard + suffix);
     }
 
-    public void showHand(String playerName, ArrayList<String> hand) {
+    public void showHand(String playerName, List<String> hand) {
         if (quiet) return;
         System.out.println(playerName + " hand: " + joinHand(hand));
     }
@@ -44,25 +44,15 @@ public class Display {
         System.out.println(playerName + " wins and scores " + points);
     }
 
-    public void showPenalty(String playerName) {
+    public void showMissedUnoPenalty(String playerName) {
         if (quiet) return;
-        System.out.println(playerName + " selected an invalid index and draws a penalty card.");
+        System.out.println(playerName + " missed UNO and draws two penalty cards.");
     }
 
-    public void showIllegalCard(String playerName, String card) {
-        if (quiet) return;
-        System.out.println(playerName + " tried illegal card " + card + " and draws a penalty card.");
+    public void showTargetWinner(String playerName, int score, int targetScore) {
+        System.out.println(playerName + " reaches " + score + " points and wins the match (target " + targetScore + ").");
     }
 
-    public void showDrawsTwo(String playerName) {
-        if (quiet) return;
-        System.out.println(playerName + " draws two.");
-    }
-
-    public void showDrawsFour(String playerName) {
-        if (quiet) return;
-        System.out.println(playerName + " draws four.");
-    }
 
     public void showSafetyLimit() {
         if (quiet) return;
@@ -74,14 +64,14 @@ public class Display {
         System.out.println("\n=== Game " + gameNumber + " ===");
     }
 
-    public void showFinalScores(ArrayList<String> playerNames, int[] scores) {
+    public void showFinalScores(List<String> playerNames, int[] scores) {
         System.out.println("\nFinal scores:");
         for (int i = 0; i < playerNames.size(); i++) {
             System.out.println(playerNames.get(i) + ": " + scores[i]);
         }
     }
 
-    private static String joinHand(ArrayList<String> cards) {
+    private static String joinHand(List<String> cards) {
         StringBuilder out = new StringBuilder();
         for (int i = 0; i < cards.size(); i++) {
             out.append(i).append(":").append(cards.get(i));

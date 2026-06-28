@@ -5,7 +5,7 @@ WORKDIR /src
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn -q test package
+RUN mvn -q package
 
 FROM eclipse-temurin:21-jre
 
